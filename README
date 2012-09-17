@@ -1,0 +1,52 @@
+mg-rss es un agregador rss para emacs.
+
+La idea la tomé de este artículo:
+http://www.xml.com/lpt/a/2003/01/02/tr.html Lo que yo he hecho ha sido
+modificar la hoja de estilos para que en lugar de generar html, genere
+código lisp, y llamar al procesador XSLT para que acceda a las fuentes
+rss y haga la transformación.
+
+USO
+
+Es necesario definir la variable "mg-rss-sources", especificando en ella las
+direcciones de las fuentes rss y la función que se quiere usar para leer una
+noticia concreta. Esta función es "browse-url" por defecto.
+Una vez definidas las fuentes, se puede ejecutar "M-x mg-rss". Esto generará
+un nuevo buffer en el que aparecerán los titulares de las noticias. 
+Situándose sobre uno de ellos se puede pulsar ENTER para leer la noticia. Si 
+se pulsa ENTER sobre el encabezado de una fuente, sus noticias se expanden o 
+contraen, y pulsando "u" se actualizan las noticias.
+
+REQUISITOS
+
+* xsltproc
+
+ARTÍCULOS RELACIONADOS
+
+What is RSS?
+    http://www.xml.com/pub/a/2002/12/18/dive-into-xml.html
+
+Never Mind the Namespaces: An XSLT RSS Client.
+    http://www.xml.com/lpt/a/2003/01/02/tr.html
+
+
+HECHO
+
+* Configurar las fuentes de información con custom en lugar de con 
+rss_sources.xml
+
+* Poder asociar una función lisp a una fuente de forma que se pueda usar
+una función distinta de "browse-url" para ver sus noticias.
+
+POR HACER
+
+* Poder expandir y contraer una fuente de forma que se muestren u oculten 
+sus noticias (Ha dejado de funcionar en emacs 23.1)
+
+* No todas las fuentes deberían mostrarse expandidas de entrada. Debería
+ser configurable cuales se muestran al empezar.
+
+* Añadir más posibilidades al mapa de teclado, al menos ir a fuente 
+siguiente o anterior.
+
+* Mostrar hora de actualización de fuentes y noticias.
