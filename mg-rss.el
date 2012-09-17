@@ -1,62 +1,6 @@
-; $Id: mg-rss.el,v 1.13 2003/11/02 19:12:33 mgarrido Exp $
-;
 ;;; mg-rss.el --- Agregador rss para Emacs
 ;;;
-;;; Autor: Manuel J. Garrido <jgarridosc@wanadoo.es>
-;;;
-;;; COMENTARIO
-;;;
-;;; mg-rss es un agregador rss para emacs. La idea la tomé de este artículo:
-;;; http://www.xml.com/lpt/a/2003/01/02/tr.html Lo que yo he hecho
-;;; ha sido modificar la hoja de estilos para que en lugar de generar html,
-;;; genere código lisp, y llamar al procesador XSLT para que acceda a las
-;;; fuentes rss y haga la transformación.
-;;; 
-;;; USO
-;;; 
-;;; Es necesario definir la variable "mg-rss-sources", especificando en ella las
-;;; direcciones de las fuentes rss y la función que se quiere usar para leer una
-;;; noticia concreta. Esta función es "browse-url" por defecto.
-;;; Una vez definidas las fuentes, se puede ejecutar "M-x mg-rss". Esto generará
-;;; un nuevo buffer en el que aparecerán los titulares de las noticias. 
-;;; Situándose sobre uno de ellos se puede pulsar ENTER para leer la noticia. Si 
-;;; se pulsa ENTER sobre el encabezado de una fuente, sus noticias se expanden o 
-;;; contraen, y pulsando "u" se actualizan las noticias.
-;;; 
-;;; REQUISITOS
-;;; 
-;;; * Xalan-C++ Puedes conseguirlo aquí: 
-;;;      http://xml.apache.org/xalan-c/index.html
-;;;
-;;; ARTÍCULOS RELACIONADOS
-;;;
-;;; What is RSS?
-;;;     http://www.xml.com/pub/a/2002/12/18/dive-into-xml.html
-;;;
-;;; Never Mind the Namespaces: An XSLT RSS Client.
-;;;     http://www.xml.com/lpt/a/2003/01/02/tr.html
-;;;
-;;;
-;;; HECHO
-;;;
-;;; * Configurar las fuentes de información con custom en lugar de con 
-;;; rss_sources.xml
-;;;
-;;; * Poder asociar una función lisp a una fuente de forma que se pueda usar
-;;; una función distinta de "browse-url" para ver sus noticias.
-;;;
-;;; * Poder expandir y contraer una fuente de forma que se muestren u oculten 
-;;; sus noticias
-;;;
-;;; POR HACER
-;;;
-;;; * No todas las fuentes deberían mostrarse expandidas de entrada. Debería
-;;; ser configurable cuales se muestran al empezar.
-;;;
-;;; * Añadir más posibilidades al mapa de teclado, al menos ir a fuente 
-;;; siguiente o anterior.
-;;;
-;;; * Mostrar hora de actualización de fuentes y noticias.
+;;; Autor: Manuel J. Garrido
 ;;;
 
 ; DEBUG
@@ -76,7 +20,7 @@
   "Lista de fuentes rss"
   :group 'mg-rss
   :type '(alist :key-type (string :tag "Address")
-                :value-type (string :value "browse-url")))
+                :value-type (string :value "help-url")))
 
 (defconst mg-rss-style-sheet
   (concat (file-name-directory (locate-library "mg-rss")) "getRSS2el.xsl")
@@ -194,7 +138,7 @@
   (use-local-map rss-map))
 
 ;;;
-;; Enlace con xalan
+;; Enlace con xsltproc
 ;;;
 
 (defun mg-rss-show-news (process event)
@@ -216,19 +160,11 @@
 
 (defun mg-get-ind-rss (source-addr source-func)
   "Obtiene los titulares de una única fuente."
-;;   (let ((rss-process (start-process source-addr
-;;                                     (concat "*Xalan-rss-"  source-addr) "xalan"
-;;                                     "-e" "latin-1"
-;;                                     "-p" "func" (concat "'" source-func "'")
-;;                                     source-addr
-;;                                     mg-rss-style-sheet)))
-
   (let ((rss-process (start-process source-addr
-                                    (concat "*Xalan-rss-"  source-addr) "xalan"
-                                    "-q" ;"latin-1"
-                                    "-param" "func" (concat "'" source-func "'")
-                                    "-in" source-addr
-                                    "-xsl" mg-rss-style-sheet)))
+                                    (concat "*Xsltproc-rss-"  source-addr) "xsltproc"
+                                    "--param" "func" (concat "'" source-func "'")
+                                    mg-rss-style-sheet
+									source-addr)))
 
     (set-process-sentinel rss-process 'mg-rss-show-news)))
 
@@ -249,8 +185,9 @@
     (erase-buffer)
     (rss-mode)
     (dolist (source mg-rss-sources)
-      (help-insert-xref-button (concat "FUENTE: " (car source) "\n") 
-                               'mg-rss-collapse-or-expand (car source))
+	  (insert (concat "FUENTE: " (car source) "\n"))
+      ;; (help-insert-xref-button (concat "FUENTE: " (car source) "\n")
+      ;;                          'mg-rss-collapse-or-expand (car source))
       ; FIXME. Debería haber una función que ocultara la estructura de 
       ; mg-rss-show-ctrl
       (puthash (car source) 
@@ -260,7 +197,7 @@
       (mg-rss-set-end (car source)))
     (goto-char (point-min)))
 
-  (dolist (source mg-rss-sources)   
+  (dolist (source mg-rss-sources)
     (mg-get-ind-rss (car source) (cdr source))))
 
 (provide 'mg-rss)
